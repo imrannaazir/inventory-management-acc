@@ -16,9 +16,16 @@ exports.updateProductService = async (productId, data) => {
     return result
 }
 
-exports.bulkUpdateProductService = async (ids, data) => {
-    const result = await Product.updateMany({ _id: ids }, data, {
-        runValidators: true
+exports.bulkUpdateProductService = async (data) => {
+    // const result = await Product.updateMany({ _id: ids }, data, {
+    //     runValidators: true
+    // })
+    // return result
+    console.log(data);
+    const products = []
+    data.products.forEach(product => {
+        products.push(Product.updateOne({ _id: product.id }, product.data))
     })
+    const result = await Promise.all(products)
     return result
 }

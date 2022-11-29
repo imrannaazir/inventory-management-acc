@@ -60,7 +60,7 @@ exports.updateProduct = async (req, res, next) => {
 
 exports.bulkUpdateProduct = async (req, res, next) => {
     try {
-        const result = await bulkUpdateProductService(req.body.ids, req.body.data)
+        const result = await bulkUpdateProductService(req.body)
         res.status(200).send({
             success: true,
             message: "successfully updated",
