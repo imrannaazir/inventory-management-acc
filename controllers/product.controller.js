@@ -5,17 +5,50 @@ exports.getProducts = async (req, res, next) => {
         console.log(req.query);
 
         // coping the query object because obj is ref type
-        const queryObj = { ...req.query }
+        let filters = { ...req.query }
 
         //fields that we want to exclude
         const excludeFields = ["sort", "page", "limit"]
         // exclude from query object
-        excludeFields.forEach(field => delete queryObj[field])
+        excludeFields.forEach(field => delete filters[field])
 
-        console.log(req.query);
-        console.log(queryObj);
-        //call the service func with excluded obj
-        const products = await getProductService(queryObj)
+        const queries = {}
+
+        // get sort string from query
+        if (req.query.sort) {
+            const sortBy = req.query.sort.split(',').join(' ')
+            queries.sortBy = sortBy
+        }
+
+        // get select string from query
+        if (req.query.field) {
+            const select = req.query.field.split(',').join(' ')
+            queries.select = select
+        }
+
+        // pagination
+        if (req.query.page) {
+            const { page = 1, limit = 10 } = req.query
+            //total 50 product
+            // each page 10 products
+            // page 1 -> 1-10
+            // page 2 -> 11-20 
+            //page 3 -> 21-30(skip for page 3 first 20 product , 3-1*10= page -1 * limit )
+            // page 4 -> 31-40
+            //page 5 -> 41-50
+            const skip = (Number(page) - 1) * Number(limit)
+
+            queries.skip = skip
+            queries.limit = Number(limit)
+        }
+
+        console.log(filters);
+        let filtersString = JSON.stringify(filters)
+        filtersString = filtersString.replace(/\b(gt|gte|lt|lte)\b/g, match => `$${match}`)
+        filters = JSON.parse(filtersString)
+        console.log(filters);
+        const products = await getProductService(filters, queries)
+
         res.status(200).send({
             success: true,
             products: products
